@@ -1,0 +1,156 @@
+---
+title: "DI"
+author: "Parthasarathi Samantaray"
+date: "02/05/2019"
+output: word_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+
+```{r}
+library(tidyverse)
+library(lubridate)
+```
+
+
+
+
+
+```{r}
+nypd <- read.csv("NYPD_Motor_Vehicle_Collisions.csv")
+```
+
+```{r}
+nypd %>% head(2)
+
+```
+
+```{r}
+class(nypd$DATE)
+```
+
+```{r}
+nypd$DATE <- mdy(nypd$DATE)
+```
+
+```{r}
+class(nypd$DATE)
+```
+
+```{r}
+nypd<-nypd %>% filter(year(DATE)!= 2019)
+```
+
+```{r}
+nypd_cycle_2018 <- nypd %>% mutate(
+  NUMBER.OF.CYCLIST.IMPACTED =
+    NUMBER.OF.CYCLIST.INJURED+NUMBER.OF.CYCLIST.KILLED,
+  MONTH= month(DATE),
+  YEAR= year(DATE))%>%
+  select(YEAR,DATE,TIME,LONGITUDE,LATITUDE,NUMBER.OF.CYCLIST.IMPACTED)%>%
+  filter(!is.na(LONGITUDE))
+```
+
+
+
+
+
+```{r}
+nypd_cycle_2018 %>% group_by(YEAR,LONGITUDE,LATITUDE) %>% summarise(NUMBER.OF.CYCLIST.IMPACTED =sum(NUMBER.OF.CYCLIST.IMPACTED))
+```
+
+
+
+
+
+```{r}
+cycle_2012 <- nypd_cycle_2018 %>%
+  group_by(YEAR,LONGITUDE,LATITUDE) %>%
+  summarise(NUMBER.OF.CYCLIST.IMPACTED =sum(NUMBER.OF.CYCLIST.IMPACTED)) %>%
+  filter(YEAR==2012,
+         NUMBER.OF.CYCLIST.IMPACTED>0)
+
+
+cycle_2017 <- nypd_cycle_2018 %>%
+  group_by(YEAR,LONGITUDE,LATITUDE) %>%
+  summarise(NUMBER.OF.CYCLIST.IMPACTED =sum(NUMBER.OF.CYCLIST.IMPACTED)) %>%
+  filter(YEAR==2017,
+         NUMBER.OF.CYCLIST.IMPACTED>0)
+```
+
+```{r}
+cycle_2012 <- cycle_2012[,-1]
+cycle_2017 <- cycle_2017[,-1]
+```
+
+
+
+
+```{r}
+
+plot_2012 <-qmplot(x=LONGITUDE,y=LATITUDE,data=cycle_2012,geom = c("point","density2d"),alpha =0.01,color="red",darken = .4,zoom = 11)
+
+png("nyc-cycle-2012.png")
+plot_2012
+dev.off()
+
+
+```
+
+```{r}
+qmplot(x=LONGITUDE,y=LATITUDE,data=cycle_2012,geom = c("point","density2d"),alpha =0.01,color="red",darken = .4)
+```
+
+
+```{r}
+{
+plot_2017 <-qmplot(x=LONGITUDE,y=LATITUDE,
+                   data=cycle_2017,
+                   geom =c("point","density2d"),
+                   alpha =0.01,
+                   color="red",
+                   darken = .4)
+
+
+png("nyc-cycle-2017.png")
+plot_2017
+dev.off()
+}
+```
+
+```{r}
+cycletrend <- nypd %>% mutate(
+  NUMBER.OF.CYCLIST.IMPACTED =
+    NUMBER.OF.CYCLIST.INJURED+NUMBER.OF.CYCLIST.KILLED, YEAR= year(DATE), MONTH= month(DATE)) %>%
+  filter(YEAR %in% c(2012,2015,2017))%>%
+  select(YEAR,MONTH,NUMBER.OF.CYCLIST.IMPACTED) %>%
+  group_by(YEAR,MONTH) %>%
+  summarise(CYCLIST.IMPACTED = sum(NUMBER.OF.CYCLIST.IMPACTED)) 
+
+
+```
+```{r}
+cycletrend %>% head()
+```
+
+```{r}
+cycletrend$MONTH <- factor(cycletrend$MONTH)
+cycletrend$YEAR <- factor(cycletrend$YEAR)
+
+```
+
+```{r}
+{
+Monthlytrend<-ggplot(cycletrend, aes(x=MONTH,y=CYCLIST.IMPACTED,color=YEAR))+
+  geom_point()+ggtitle("No. of Cyclist impacted")
+
+png("nyc-cycle-trend.png")
+Monthlytrend
+}
+ # increasing trend 
+
+```
+

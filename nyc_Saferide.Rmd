@@ -13,6 +13,7 @@ knitr::opts_chunk$set(echo = TRUE)
 ```{r}
 library(tidyverse)
 library(lubridate)
+library(ggmap)
 ```
 
 
@@ -91,7 +92,7 @@ cycle_2017 <- cycle_2017[,-1]
 
 ```{r}
 
-plot_2012 <-qmplot(x=LONGITUDE,y=LATITUDE,data=cycle_2012,geom = c("point","density2d"),alpha =0.01,color="red",darken = .4,zoom = 11)
+plot_2012 <-qmplot(x=LONGITUDE,y=LATITUDE,data=cycle_2012,geom = c("point","density2d"),alpha =0.01,color="red",darken = .4,zoom = 11, main= "Overview of Clyclist impacted in 2012")
 
 png("nyc-cycle-2012.png")
 plot_2012
@@ -144,7 +145,7 @@ cycletrend$YEAR <- factor(cycletrend$YEAR)
 
 ```{r}
 {
-Monthlytrend<-ggplot(cycletrend, aes(x=MONTH,y=CYCLIST.IMPACTED,color=YEAR))+
+Monthlytrend<-ggplot(cycletrend, aes(x=MONTH,y=CYCLIST.IMPACTED,color=YEAR))+geom_line(linetype ="dashed")+
   geom_point()+ggtitle("No. of Cyclist impacted")
 
 png("nyc-cycle-trend.png")
@@ -153,4 +154,6 @@ Monthlytrend
  # increasing trend 
 
 ```
+
+
 
